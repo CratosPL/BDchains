@@ -1,0 +1,87 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@import 'swiper/css';  /* ✅ Correct */
+@import url('https://fonts.googleapis.com/css2?family=Russo+One&family=Unbounded:wght@200&display=swap');
+@import url('@fortawesome/fontawesome-free/css/all.min.css');
+
+:root {
+  --foreground-rgb: 0, 0, 0;
+  --background-start-rgb: 214, 219, 220;
+  --background-end-rgb: 255, 255, 255;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --foreground-rgb: 255, 255, 255;
+    --background-start-rgb: 0, 0, 0;
+    --background-end-rgb: 0, 0, 0;
+  }
+}
+
+body {
+  color: rgb(var(--foreground-rgb));
+  background: linear-gradient(
+      to bottom,
+      transparent,
+      rgb(var(--background-end-rgb))
+    )
+    rgb(var(--background-start-rgb));
+}
+
+/* Dodaj swoje dodatkowe style tutaj */
+body {
+  font-family: 'Russo One', sans-serif;
+  background-color: #0d0d0d;
+}
+
+h1,
+h2,
+h3,
+h4 {
+  font-family: 'Unbounded', sans-serif;
+  color: #d0d0d0;
+}
+
+p {
+  color: #b0b0b0;
+}
+
+.btn-gradient {
+  background: linear-gradient(to right, #b71c1c, #d32f2f);
+}
+
+.shadow-metal {
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.8), 0 4px 6px -2px rgba(0, 0, 0, 0.6);
+}
+
+.gradient-bg {
+  background: linear-gradient(to right, #121212, #000000);
+}
+
+.banner-section {
+  padding: 60px 0;
+}
+
+.banner-section h1 {
+  font-size: 2.5rem;
+  margin-bottom: 20px;
+}
+
+.banner-section p {
+  font-size: 1.125rem;
+  margin-bottom: 30px;
+}
+
+.swiper-container {
+  width: 100%;
+  max-width: 800px;
+  margin: 0 auto;
+}
+
+.swiper-slide img {
+  width: 100%;
+  height: auto;
+  border-radius: 10px;
+}
