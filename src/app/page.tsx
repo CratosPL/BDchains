@@ -1,4 +1,5 @@
 "use client";
+
 import {
   Abstraxion,
   useAbstraxionAccount,
@@ -8,67 +9,76 @@ import { Button } from "@burnt-labs/ui";
 import { useEffect, useState } from "react";
 import Swiper from 'swiper';
 import 'swiper/css';
+import Slider from "react-slick";
+import "slick-carousel/slick/slick.css";
+import "slick-carousel/slick/slick-theme.css";
 import { FaCopy } from "react-icons/fa";
-import CreateAccountModal from "./CreateAccountModal";
 import UserPanel from "../components/UserPanel";
+import supabase from "../utils/supabase";
 
 export default function Page(): JSX.Element {
-  const { data, isConnected, isConnecting } = useAbstraxionAccount();
+  const { data, isConnected } = useAbstraxionAccount();
   const { bech32Address } = data || {};
   const [accountNumber, setAccountNumber] = useState<string | null>(null);
-  const [isCreateAccountModalOpen, setIsCreateAccountModalOpen] = useState(false);
   const [, setShow] = useModal();
   const [isUserPanelOpen, setIsUserPanelOpen] = useState(false);
-  const [user, setUser] = useState({ username: "", avatarUrl: "" });
+
+  // Dodane stany
+  const [user, setUser] = useState({ username: "", avatarUrl: "", hasAccount: false });
+
+  // Funkcja do pobierania danych użytkownika
+  const fetchUser = async (bech32Address: string) => {
+    try {
+      const { data, error } = await supabase
+        .from('users')
+        .select('*')
+        .eq('bech32address', bech32Address) // Zmiana z bech32Address na bech32address
+        .single();
+
+      if (data) {
+        setUser(data);
+      } else if (error) {
+        console.error("Error fetching user data:", error);
+      }
+    } catch (error) {
+      console.error("Error fetching user data:", error);
+    }
+  };
+
+  // Funkcja do aktualizacji danych użytkownika
+  const handleUpdateUser = async (updatedUser: { username: string; avatarUrl: string | null }) => {
+    try {
+      const { data, error } = await supabase
+        .from('users')
+        .update({ ...updatedUser }) // Use update instead of upsert
+        .eq('bech32address', bech32Address) // Ensure this matches your table column name
+        .single();
+  
+      if (data) {
+        setUser(data);
+      } else if (error) {
+        console.error("Error updating user data:", error.message);
+      }
+    } catch (error) {
+      console.error("Error updating user data:", error);
+    }
+  };
+
+  // Efekt do pobierania danych użytkownika po zmianie adresu portfela
+  useEffect(() => {
+    if (bech32Address) {
+      fetchUser(bech32Address);
+    }
+  }, [bech32Address]);
+
+  // Efekt do ustawienia numeru konta
+  useEffect(() => {
+    setAccountNumber(bech32Address || null);
+  }, [bech32Address]);
 
   const toggleUserPanel = () => {
     setIsUserPanelOpen(!isUserPanelOpen);
   };
-
-  // Funkcja do tworzenia konta
-  const handleCreateAccount = ({ username, avatar }: { username: string, avatar: string }) => {
-    console.log("Creating account with:", username, avatar);
-    localStorage.setItem("user", JSON.stringify({ username, avatarUrl: avatar }));
-    localStorage.setItem("hasAccount", "true");
-    setUser({ username, avatarUrl: avatar });
-    setIsCreateAccountModalOpen(false);
-  };
-
-  useEffect(() => {
-    // Pobieramy dane użytkownika z localStorage
-    const storedUser = JSON.parse(localStorage.getItem("user") || "{}");
-    setUser(storedUser);
-  }, []);
-
-  useEffect(() => {
-    if (bech32Address) {
-      setAccountNumber(bech32Address);
-    } else {
-      setAccountNumber(null);
-    }
-  }, [bech32Address]);
-
-  // Otwórz okno rejestracji po zalogowaniu, jeśli użytkownik nie ma konta
-  useEffect(() => {
-    if (isConnected && !localStorage.getItem("hasAccount")) {
-      setIsCreateAccountModalOpen(true);
-    }
-  }, [isConnected]);
-
-  useEffect(() => {
-    const swiper = new Swiper('.swiper-container', {
-      loop: true,
-      autoplay: {
-        delay: 3000,
-      },
-      pagination: {
-        el: '.swiper-pagination',
-        clickable: true,
-      },
-      spaceBetween: 10,
-      slidesPerView: 1,
-    });
-  }, []);
 
   return (
     <main className="text-white font-russo bg-black">
@@ -89,7 +99,6 @@ export default function Page(): JSX.Element {
           <div className="web3-login relative">
             {bech32Address ? (
               <div className="flex items-center justify-center cursor-pointer" onClick={toggleUserPanel}>
-                {/* Wyświetlanie awatara, jeśli dostępny */}
                 <img
                   src={user.avatarUrl || "/images/default-avatar.png"}
                   alt="User Avatar"
@@ -99,7 +108,7 @@ export default function Page(): JSX.Element {
             ) : (
               <Button
                 fullWidth
-                onClick={() => { setShow(true) }}
+                onClick={() => setShow(true)}
                 structure="base"
               >
                 CONNECT
@@ -109,59 +118,77 @@ export default function Page(): JSX.Element {
               <UserPanel 
                 onViewAccount={() => { setShow(true); setIsUserPanelOpen(false); }} 
                 accountNumber={accountNumber} 
+                user={user} // Przekazanie stanu użytkownika
+                onUpdateUser={handleUpdateUser} // Przekazanie funkcji aktualizacji
               />
             )}
           </div>
         </div>
       </header>
 
-      {/* Create Account Modal */}
-      {isCreateAccountModalOpen && (
-        <CreateAccountModal
-          onClose={() => setIsCreateAccountModalOpen(false)}
-          onCreateAccount={handleCreateAccount}
-        />
-      )}
-
-
       {/* Hero Section */}
       <section id="hero" className="h-screen bg-cover bg-center flex items-center justify-center"
         style={{ backgroundImage: "url('/images/metal_hero2.jpg')" }} data-aos="fade-up">
         <div className="text-center max-w-4xl px-4">
           <h1 className="text-5xl md:text-6xl font-bold mb-6 text-shadow-lg font-unbounded">Welcome to Metal Encyclopedia Web3</h1>
-          <p className="text-lg md:text-xl mb-8 text-shadow">The ultimate platform where Metal Music meets Blockchain.
-            Discover, contribute, and join a decentralized future for music lovers and artists!</p>
+          <p className="text-lg md:text-xl mb-8 text-shadow">The ultimate platform where Metal Music meets Blockchain.</p>
           <button
             className="btn-gradient text-white px-8 py-3 rounded-lg hover:bg-red-500 transition duration-300">Get Started</button>
         </div>
       </section>
 
-      {/* New Banner Section with Swiper Carousel */}
-      <section className="banner-section py-20" data-aos="fade-up">
-        <div className="container mx-auto text-center px-4">
-          <h1 className="text-4xl md:text-5xl font-bold mb-6 font-unbounded">Passionate about Metal Music</h1>
-          <p className="text-lg md:text-xl max-w-3xl mx-auto mb-8">We honor the past while looking to the future. Build with us
-            an encyclopedia where you can add every metal band from around the world and earn rewards for your
-            contributions.</p>
-          <div className="swiper-container">
-            <div className="swiper-wrapper">
-              <div className="swiper-slide">
-                <img src="/images/new-banner-image1.jpg" alt="Metal Music Banner 1" className="mx-auto rounded-lg shadow-metal" loading="lazy" />
-              </div>
-              <div className="swiper-slide">
-                <img src="/images/new-banner-image2.jpg" alt="Metal Music Banner 2" className="mx-auto rounded-lg shadow-metal" loading="lazy" />
-              </div>
-              <div className="swiper-slide">
-                <img src="/images/new-banner-image4.jpg" alt="Metal Music Banner 3" className="mx-auto rounded-lg shadow-metal" loading="lazy" />
-              </div>
-              <div className="swiper-slide">
-                <img src="/images/new-banner-image3.jpg" alt="Metal Music Banner 4" className="mx-auto rounded-lg shadow-metal" loading="lazy" />
-              </div>
-            </div>
-            <div className="swiper-pagination"></div>
-          </div>
+{/* React Slick Carousel Section */}
+<section className="banner-section py-20" data-aos="fade-up">
+  <div className="container mx-auto text-center px-4">
+    <h1 className="text-4xl md:text-5xl font-bold mb-6 font-unbounded">Passionate about Metal Music</h1>
+    <p className="text-lg md:text-xl max-w-3xl mx-auto mb-8">We honor the past while looking to the future.</p>
+    
+    {/* React Slick Slider */}
+    <Slider
+      dots={true} // Pokazuje paginację (kropki)
+      infinite={true} // Nieskończona pętla
+      speed={500} // Prędkość przejścia
+      slidesToShow={3} // Liczba widocznych slajdów
+      slidesToScroll={1} // Liczba slajdów do przewijania
+      autoplay={true} // Autoplay
+      autoplaySpeed={3000} // Czas autoplay
+      responsive={[
+        {
+          breakpoint: 1024, // Dla ekranów >= 1024px
+          settings: {
+            slidesToShow: 3,
+            slidesToScroll: 1,
+          },
+        },
+        {
+          breakpoint: 768, // Dla ekranów >= 768px
+          settings: {
+            slidesToShow: 2,
+            slidesToScroll: 1,
+          },
+        },
+        {
+          breakpoint: 640, // Dla ekranów < 640px
+          settings: {
+            slidesToShow: 1,
+            slidesToScroll: 1,
+          },
+        },
+      ]}
+    >
+      {["/images/new-banner-image1.jpg", "/images/new-banner-image2.jpg", "/images/new-banner-image4.jpg", "/images/new-banner-image3.jpg"].map((src, index) => (
+        <div key={index} className="px-2"> {/* Dodaj odstęp między slajdami */}
+          <img
+            src={src}
+            alt={`Metal Music Banner ${index + 1}`}
+            className="w-full h-[400px] md:h-[500px] object-cover rounded-lg shadow-metal"
+            loading="lazy"
+          />
         </div>
-      </section>
+      ))}
+    </Slider>
+  </div>
+</section>
 
       {/* NFT Collection Section */}
       <section id="nft-collection" className="py-20" data-aos="fade-up">

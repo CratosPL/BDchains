@@ -1,5 +1,6 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { FaCopy, FaTrash, FaEdit, FaEye, FaEyeSlash } from "react-icons/fa";
+import supabase from "../utils/supabase";
 
 // Helper function to copy text to clipboard
 const copyToClipboard = async (text: string): Promise<void> => {
@@ -14,31 +15,16 @@ const copyToClipboard = async (text: string): Promise<void> => {
 interface UserPanelProps {
   onViewAccount: () => void;
   accountNumber: string | null;
+  user: { username: string; avatarUrl: string };
+  onUpdateUser: (updatedUser: { username: string; avatarUrl: string | null }) => void;
 }
 
-function UserPanel({ onViewAccount, accountNumber }: UserPanelProps) {
+function UserPanel({ onViewAccount, accountNumber, user, onUpdateUser }: UserPanelProps) {
   const [isCopied, setIsCopied] = useState(false);
-  const [username, setUsername] = useState("");
-  const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
   const [isEditingAvatar, setIsEditingAvatar] = useState(false);
   const [showAccountNumber, setShowAccountNumber] = useState(false);
-  const [isNewUser, setIsNewUser] = useState(false); // Track if the user is new
-  const [showWelcomeModal, setShowWelcomeModal] = useState(false); // Control visibility of the welcome modal
+  const [isEditing, setIsEditing] = useState(false); // Added state for editing
 
-  // Fetch user data from localStorage
-  useEffect(() => {
-    const user = JSON.parse(localStorage.getItem("user") || "{}");
-    if (user && user.username) {
-      setUsername(user.username);
-      setAvatarUrl(user.avatarUrl || null);
-      setIsNewUser(false); // User already has an account
-    } else {
-      setIsNewUser(true); // User is new and needs to create an account
-      setShowWelcomeModal(true); // Show welcome modal for new users
-    }
-  }, []);
-
-  // Handle copy-to-clipboard action
   const handleCopy = async () => {
     if (accountNumber) {
       await copyToClipboard(accountNumber);
@@ -47,113 +33,128 @@ function UserPanel({ onViewAccount, accountNumber }: UserPanelProps) {
     }
   };
 
-  // Handle avatar deletion
-  const handleDeleteAvatar = () => {
-    setAvatarUrl(null);
-    localStorage.setItem("user", JSON.stringify({ username, avatarUrl: null }));
+  const handleDeleteAvatar = async () => {
+    try {
+      const { error } = await supabase
+        .from('users')
+        .update({ avatarUrl: null })
+        .eq('bech32address', accountNumber); // Ensure column name matches
+
+      if (error) throw error;
+
+      onUpdateUser({ ...user, avatarUrl: null });
+    } catch (error) {
+      console.error("Error deleting avatar:", error);
+    }
   };
 
-  // Handle avatar change
-  const handleAvatarChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleAvatarChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
       const file = e.target.files[0];
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        if (reader.result) {
-          setAvatarUrl(reader.result as string);
-          localStorage.setItem(
-            "user",
-            JSON.stringify({ username, avatarUrl: reader.result as string })
-          );
-        }
-      };
-      reader.readAsDataURL(file);
+      const fileExt = file.name.split('.').pop();
+      const fileName = `${accountNumber}.${fileExt}`; // Use accountNumber as the file name
+      const filePath = `avatars/${fileName}`; // Store in the 'avatars' bucket
+
+      // Upload the file to Supabase Storage
+      const { error: uploadError } = await supabase.storage
+        .from('avatars')
+        .upload(filePath, file, {
+          cacheControl: '3600', // Optional: Set cache control
+          upsert: true, // Overwrite if file already exists
+        });
+
+      if (uploadError) {
+        console.error("Error uploading avatar:", uploadError.message);
+        return;
+      }
+
+      // Get the public URL of the uploaded file
+      const { data: { publicUrl } } = supabase.storage
+        .from('avatars')
+        .getPublicUrl(filePath);
+
+      // Update the user's avatarUrl in the database
+      const { error: updateError } = await supabase
+        .from('users')
+        .update({ avatarUrl: publicUrl })
+        .eq('bech32address', accountNumber);
+
+      if (updateError) {
+        console.error("Error updating avatar URL:", updateError.message);
+      } else {
+        onUpdateUser({ ...user, avatarUrl: publicUrl }); // Update local state
+      }
     }
     setIsEditingAvatar(false);
   };
 
-  // Handle account creation for new users
-  const handleCreateAccount = (username: string, avatarUrl: string | null) => {
-    if (username) {
-      localStorage.setItem("user", JSON.stringify({ username, avatarUrl }));
-      setUsername(username);
-      setAvatarUrl(avatarUrl);
-      setIsNewUser(false); // Account created, user is no longer new
-      setShowWelcomeModal(false); // Close the welcome modal
-    } else {
-      alert("Username is required to create an account.");
+  const handleEditUsername = async () => {
+    const newUsername = prompt("Enter a new username:", user.username);
+    if (newUsername) {
+      try {
+        const { error } = await supabase
+          .from('users')
+          .update({ username: newUsername })
+          .eq('bech32address', accountNumber);
+
+        if (error) throw error;
+
+        onUpdateUser({ ...user, username: newUsername });
+      } catch (error) {
+        console.error("Error updating username:", error);
+      }
     }
   };
 
-  // Handle skipping account creation
-  const handleSkipAccountCreation = () => {
-    setShowWelcomeModal(false); // Close the welcome modal without creating an account
+  const toggleEdit = () => {
+    setIsEditing(!isEditing); // Toggle the editing state
   };
 
   return (
     <div className="user-panel bg-gray-800 p-6 rounded-lg shadow-lg absolute top-16 right-4 w-72">
-      {/* Welcome Modal for New Users */}
-      {showWelcomeModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-gray-800 p-6 rounded-lg w-96">
-            <h2 className="text-xl font-semibold text-white mb-4">WELCOME</h2>
-            <p className="text-gray-400 mb-4">
-            Add Your Name and Avatar
-            </p>
-            <input
-              type="text"
-              placeholder="Enter your username"
-              className="w-full p-2 mb-4 rounded-lg bg-gray-700 text-white"
-              onChange={(e) => setUsername(e.target.value)}
-              required
-            />
-            <input
-              type="file"
-              accept="image/*"
-              onChange={handleAvatarChange}
-              className="w-full p-2 mb-4 rounded-lg bg-gray-700 text-white text-sm"
-            />
-            <div className="flex space-x-2">
-              <button
-                onClick={() => handleCreateAccount(username, avatarUrl)}
-                className="flex-1 px-3 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600"
-              >
-                LET'S GO
-              </button>
-              <button
-                onClick={handleSkipAccountCreation}
-                className="flex-1 px-3 py-2 bg-gray-700 text-white rounded-lg hover:bg-gray-600"
-              >
-                SKIP FOR NOW
-              </button>
-            </div>
+      <div className="flex items-center justify-between mb-4">
+        <div className="flex items-center space-x-4">
+          <div
+            className="h-16 w-16 rounded-full overflow-hidden bg-gray-700 cursor-pointer"
+            onClick={toggleEdit} // Enable editing when clicked
+          >
+            {user.avatarUrl ? (
+              <img
+                src={user.avatarUrl}
+                alt={user.username}
+                className="w-full h-full object-cover"
+              />
+            ) : (
+              <div className="w-full h-full flex items-center justify-center text-2xl font-bold text-white">
+                {user.username.charAt(0).toUpperCase()}
+              </div>
+            )}
+          </div>
+          <div>
+            <h3 className="text-lg font-semibold text-white">{user.username}</h3>
+            <p className="text-sm text-gray-400">User</p>
           </div>
         </div>
-      )}
-
-      {/* User Panel */}
-      <div className="flex items-center space-x-4 mb-4">
-        <div
-          className="h-16 w-16 rounded-full overflow-hidden bg-gray-700 cursor-pointer"
-          onClick={() => setShowWelcomeModal(true)} // Open welcome modal on avatar click
+        <button
+          onClick={handleEditUsername}
+          className="px-2 py-1 bg-gray-700 text-white text-sm rounded-lg hover:bg-gray-600"
         >
-          {avatarUrl ? (
-            <img
-              src={avatarUrl || "/placeholder.svg"}
-              alt={username}
-              className="w-full h-full object-cover"
-            />
-          ) : (
-            <div className="w-full h-full flex items-center justify-center text-2xl font-bold text-white">
-              {username.charAt(0).toUpperCase()}
-            </div>
-          )}
-        </div>
-        <div>
-          <h3 className="text-lg font-semibold text-white">{username}</h3>
-          <p className="text-sm text-gray-400">User</p> {/* Changed from username to "User" */}
-        </div>
+          <FaEdit />
+        </button>
       </div>
+
+      {/* Edit section */}
+      {isEditing ? (
+        <div className="mb-4">
+          <input
+            type="text"
+            value={user.username}
+            onChange={(e) => onUpdateUser({ ...user, username: e.target.value })}
+            className="w-full p-2 rounded-lg bg-gray-700 text-white placeholder-gray-400"
+            placeholder="Edit Username"
+          />
+        </div>
+      ) : null}
 
       {isEditingAvatar ? (
         <div className="mb-4">
@@ -181,6 +182,7 @@ function UserPanel({ onViewAccount, accountNumber }: UserPanelProps) {
         </div>
       )}
 
+      {/* Show Account Number Section */}
       <div className="mb-4">
         <button
           onClick={() => setShowAccountNumber(!showAccountNumber)}

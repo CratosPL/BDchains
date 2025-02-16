@@ -73,14 +73,20 @@ p {
   margin-bottom: 30px;
 }
 
-.swiper-container {
-  width: 100%;
-  max-width: 800px;
-  margin: 0 auto;
+/* Custom styles for React Slick */
+.slick-slide {
+  padding: 0 10px; /* Odstęp między slajdami */
 }
 
-.swiper-slide img {
-  width: 100%;
-  height: auto;
-  border-radius: 10px;
+.slick-prev:before,
+.slick-next:before {
+  color: #b71c1c; /* Kolor strzałek nawigacyjnych */
+}
+
+.slick-dots li button:before {
+  color: #b71c1c; /* Kolor kropek paginacji */
+}
+
+.slick-dots li.slick-active button:before {
+  color: #d32f2f; /* Kolor aktywnej kropki paginacji */
 }
