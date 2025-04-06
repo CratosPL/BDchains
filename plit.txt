@@ -1,0 +1,20 @@
+total 1432
+-rw-r--r--    1 sebastiant  staff    1383 10 lut 08:25 README.md
+-rw-r--r--    1 sebastiant  staff     447 19 lut 13:32 components.json
+-rw-r--r--    1 sebastiant  staff     201 10 lut 08:25 next-env.d.ts
+-rw-r--r--@   1 sebastiant  staff    1739 14 lut 08:07 next.config.js
+drwxr-xr-x  784 sebastiant  staff   25088 21 lut 08:22 node_modules
+-rw-r--r--@   1 sebastiant  staff  680542 21 lut 08:22 package-lock.json
+-rw-r--r--@   1 sebastiant  staff    1821 21 lut 08:22 package.json
+-rw-r--r--    1 sebastiant  staff       0 22 lut 10:05 plit.txt
+-rw-r--r--@   1 sebastiant  staff      82 10 lut 20:43 postcss.config.js
+drwxr-xr-x   24 sebastiant  staff     768 21 lut 09:57 public
+-rw-r--r--    1 sebastiant  staff     164 11 lut 07:05 queryClient.ts
+drwxr-xr-x    3 sebastiant  staff      96 19 lut 20:28 scripts
+-rw-r--r--    1 sebastiant  staff    1093 14 lut 08:07 sentry.client.config.ts
+-rw-r--r--    1 sebastiant  staff     801 14 lut 08:07 sentry.edge.config.ts
+-rw-r--r--    1 sebastiant  staff     646 14 lut 08:07 sentry.server.config.ts
+drwxr-xr-x   10 sebastiant  staff     320 20 lut 00:22 src
+drwxr-xr-x    3 sebastiant  staff      96 10 lut 15:41 styles
+-rw-r--r--@   1 sebastiant  staff    2025 19 lut 13:32 tailwind.config.ts
+-rw-r--r--@   1 sebastiant  staff     619 10 lut 20:44 tsconfig.json

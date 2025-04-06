@@ -1,11 +1,16 @@
 /** @type {import('next').NextConfig} */
-const nextConfig = {}
-
-module.exports = nextConfig
-
+const nextConfig = {
+  async rewrites() {
+    return [
+      {
+        source: "/rpc/:path*",
+        destination: "https://rpc.xion-testnet-1.burnt.com/:path*",
+      },
+    ];
+  },
+};
 
 // Injected content via Sentry wizard below
-
 const { withSentryConfig } = require("@sentry/nextjs");
 
 module.exports = withSentryConfig(

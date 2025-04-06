@@ -1,87 +1,188 @@
+/* globals.css */
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
-@import 'swiper/css';  /* ✅ Correct */
-@import url('https://fonts.googleapis.com/css2?family=Russo+One&family=Unbounded:wght@200&display=swap');
+@import 'swiper/css';
+@import url('https://fonts.googleapis.com/css2?family=Russo+One&family=Unbounded:wght@200;400;500&display=swap');
 @import url('@fortawesome/fontawesome-free/css/all.min.css');
 
 :root {
-  --foreground-rgb: 0, 0, 0;
-  --background-start-rgb: 214, 219, 220;
-  --background-end-rgb: 255, 255, 255;
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --foreground-rgb: 255, 255, 255;
-    --background-start-rgb: 0, 0, 0;
-    --background-end-rgb: 0, 0, 0;
-  }
+  --foreground-rgb: 255, 255, 255;
+  --background-rgb: 0, 0, 0;
 }
 
 body {
   color: rgb(var(--foreground-rgb));
-  background: linear-gradient(
-      to bottom,
-      transparent,
-      rgb(var(--background-end-rgb))
-    )
-    rgb(var(--background-start-rgb));
-}
-
-/* Dodaj swoje dodatkowe style tutaj */
-body {
+  background-color: rgb(var(--background-rgb));
   font-family: 'Russo One', sans-serif;
-  background-color: #0d0d0d;
 }
 
-h1,
-h2,
-h3,
-h4 {
+h1, h2, h3, h4 {
   font-family: 'Unbounded', sans-serif;
-  color: #d0d0d0;
+  color: #d0d0d0; /* Jasnoszary z UserPanel */
 }
 
 p {
-  color: #b0b0b0;
+  color: #b0b0b0; /* Subtelna szarość z UserPanel */
 }
 
-.btn-gradient {
-  background: linear-gradient(to right, #b71c1c, #d32f2f);
-}
-
-.shadow-metal {
-  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.8), 0 4px 6px -2px rgba(0, 0, 0, 0.6);
-}
-
+/* Gradient tła jak w UserPanel */
 .gradient-bg {
-  background: linear-gradient(to right, #121212, #000000);
+  background: linear-gradient(to bottom, #1a1a1a, #0d0d0d);
 }
 
-.banner-section {
-  padding: 60px 0;
+/* Przyciski z gradientem UserPanel */
+.btn-metal {
+  background: linear-gradient(to right, #b71c1c, #000000);
+  border: 2px solid #ff0000;
+  box-shadow: 0 5px 15px rgba(255, 0, 0, 0.3);
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
 }
 
-.banner-section h1 {
-  font-size: 2.5rem;
-  margin-bottom: 20px;
+.btn-metal:hover {
+  transform: scale(1.05);
+  box-shadow: 0 8px 20px rgba(255, 0, 0, 0.5);
 }
 
-.banner-section p {
-  font-size: 1.125rem;
-  margin-bottom: 30px;
+/* Skull shadow z UserPanel */
+.shadow-metal {
+  box-shadow: 0 10px 20px rgba(0, 0, 0, 0.9), 0 6px 10px rgba(255, 0, 0, 0.2);
 }
 
-.swiper-container {
-  width: 100%;
-  max-width: 800px;
-  margin: 0 auto;
+/* Reszta stylów bez zmian */
+.skull-bg {
+  background-image: url('/images/skull_pattern.jpg');
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  background-attachment: fixed;
 }
 
-.swiper-slide img {
-  width: 100%;
-  height: auto;
-  border-radius: 10px;
+.skull-text {
+  text-shadow: 0 0 15px rgba(255, 0, 0, 0.8), 0 0 25px rgba(255, 0, 0, 0.6);
 }
+
+.skull-button {
+  background: linear-gradient(to right, #b71c1c, #000000);
+  border: 2px solid #ff0000;
+  box-shadow: 0 5px 15px rgba(255, 0, 0, 0.3);
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.skull-button:hover {
+  transform: scale(1.05);
+  box-shadow: 0 8px 20px rgba(255, 0, 0, 0.5);
+}
+
+.skull-shadow {
+  box-shadow: 0 10px 20px rgba(0, 0, 0, 0.9), 0 6px 10px rgba(255, 0, 0, 0.2);
+}
+
+.skull-border {
+  border-image: url('/images/skull_border.png') 30 round;
+}
+
+.skull-hover:hover {
+  text-shadow: 0 0 10px rgba(255, 0, 0, 0.7);
+}
+
+.skull-loading {
+  animation: skull-pulse 2s infinite;
+}
+
+@keyframes skull-pulse {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.1); box-shadow: 0 0 10px rgba(255, 0, 0, 0.8); }
+}
+
+.skull-nav {
+  transition: text-shadow 0.3s ease;
+}
+
+.skull-nav:hover {
+  text-shadow: 0 0 10px rgba(255, 0, 0, 0.7);
+}
+
+.skull-pagination .swiper-pagination-bullet {
+  background: #666;
+  opacity: 0.5;
+}
+
+.skull-pagination .swiper-pagination-bullet-active {
+  background: #ff0000;
+  opacity: 1;
+  box-shadow: 0 0 5px rgba(255, 0, 0, 0.8);
+}
+
+.skull-icon {
+  text-shadow: 0 0 10px rgba(255, 0, 0, 0.6);
+}
+
+.skull-close:hover {
+  text-shadow: 0 0 10px rgba(255, 0, 0, 0.7);
+}
+
+.skull-link:hover {
+  text-shadow: 0 0 10px rgba(255, 0, 0, 0.7);
+}
+
+section {
+  position: relative;
+  padding: 4rem 0;
+}
+
+section::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.6);
+  z-index: 1;
+}
+
+section > * {
+  position: relative;
+  z-index: 10;
+}
+
+.hero-full-width {
+  background-size: 100% auto;
+  background-position: center;
+  background-repeat: no-repeat;
+}
+
+.backface-hidden {
+  backface-visibility: hidden;
+}
+.rotate-y-180 {
+  transform: rotateY(180deg);
+}
+
+
+/* globals.css */
+.edit-modal-save-button {
+  padding: 0.5rem 1rem;
+  border-radius: 0.5rem;
+  color: #d0d0d0;
+  font-size: 0.875rem;
+  font-weight: 500;
+  transition: background-color 0.3s ease;
+}
+.edit-modal-save-button:hover:not(:disabled) {
+  background-color: #6a3a3a;
+}
+.edit-modal-save-button.processing {
+  background-color: #4a4a8a;
+  animation: pulse 1s infinite;
+}
+.edit-modal-save-button.success {
+  background-color: #4a8a4a;
+}
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.7; }
+}
+
