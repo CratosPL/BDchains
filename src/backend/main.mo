@@ -2,6 +2,7 @@ import Principal "mo:base/Principal";
 import HashMap "mo:base/HashMap";
 import Text "mo:base/Text";
 import Option "mo:base/Option";
+import Iter "mo:base/Iter";
 
 actor {
   type User = {
@@ -13,12 +14,25 @@ actor {
     role: Text;
   };
 
-  let users = HashMap.HashMap<Principal, User>(10, Principal.equal, Principal.hash);
+  // Stabilna pamięć dla HashMap
+  stable var usersEntries : [(Principal, User)] = [];
+  var users = HashMap.HashMap<Principal, User>(10, Principal.equal, Principal.hash);
+
+  // Zapis stanu przed aktualizacją
+  system func preupgrade() {
+    usersEntries := Iter.toArray(users.entries());
+  };
+
+  // Odtworzenie stanu po aktualizacji
+  system func postupgrade() {
+    users := HashMap.fromIter<Principal, User>(usersEntries.vals(), 10, Principal.equal, Principal.hash);
+    usersEntries := [];
+  };
 
   public shared(msg) func register(username: Text, avatarUrl: ?Text) : async Bool {
     let caller = msg.caller;
     switch (users.get(caller)) {
-      case (?existingUser) { return false; }; // Użytkownik już istnieje
+      case (?_) { return false; }; // Użytkownik już istnieje, zmieniono na `_`
       case null {
         let newUser: User = {
           principal = caller;

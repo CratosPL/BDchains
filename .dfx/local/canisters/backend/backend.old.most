@@ -9,5 +9,5 @@ type User =
     usernameChanges : Nat
   };
 actor {
-  stable var usersEntries : [(Principal, User)]
+  stable var users : [(Principal, User)]
 };

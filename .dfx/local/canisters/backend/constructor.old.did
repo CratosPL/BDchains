@@ -1,0 +1,15 @@
+type User = 
+ record {
+   avatarUrl: opt text;
+   hasAccount: bool;
+   "principal": principal;
+   role: text;
+   username: opt text;
+   usernameChanges: nat;
+ };
+service : {
+  getUser: () -> (opt User) query;
+  isRegistered: () -> (bool) query;
+  register: (text, opt text) -> (bool);
+  updateUser: (text, opt text) -> (bool);
+}
