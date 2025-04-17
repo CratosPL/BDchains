@@ -7,7 +7,7 @@ Black Death Chains is a decentralized platform celebrating the raw fury of black
 
 ## Demo Video
 
-[Insert Demo Video Link Here](<https://www.youtube.com/watch?v=3mfd3qKXdtM&t=1883s>)
+[Insert Demo Video Link Here](<https://www.youtube.com/watch?v=ztmRGkC5QFU>)
 
 ## Screenshots
 
